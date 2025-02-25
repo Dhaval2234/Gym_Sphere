@@ -1,93 +1,76 @@
 from flask import Flask, render_template, request, redirect, url_for
-import sqlite3
+from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gym_members.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Database initialization
-def init_db():
-    conn = sqlite3.connect("gym.db")
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS test1 (
-            ID INTEGER PRIMARY KEY AUTOINCREMENT,
-            NAME TEXT NOT NULL,
-            JOIN_DATE TEXT NOT NULL,
-            END_DATE TEXT NOT NULL,
-            MOBILE_NUM TEXT NOT NULL
-        )
-    ''')
-    conn.commit()
-    conn.close()
+db = SQLAlchemy(app)
 
-# Convert string date to proper format
-def format_datetime(value, format='%Y-%m-%d'):
-    try:
-        return datetime.strptime(value, '%Y-%m-%d').strftime(format)
-    except ValueError:
-        return "Invalid Date"
+class Member(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    join_date = db.Column(db.String(10), nullable=False)
+    end_date = db.Column(db.String(10), nullable=False)
+    mobile_num = db.Column(db.String(15), nullable=False)
+    status = db.Column(db.String(20), nullable=False)
 
-# Get subscription status
-def get_subscription_status(end_date):
-    end_date = datetime.strptime(end_date, "%Y-%m-%d")
-    today = datetime.today()
-    if end_date < today:
-        return "Expired"
-    elif (end_date - today) <= timedelta(days=7):  # Near expiry if within 7 days
-        return "Near Expiry"
-    else:
-        return "Active"
-
-# Register the filter for Jinja2
-app.jinja_env.filters['strftime'] = format_datetime
-
-@app.route("/")
+@app.route('/')
 def index():
-    conn = sqlite3.connect("gym.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM test1 ORDER BY END_DATE ASC")  # Sort by end date (ascending)
-    members = cursor.fetchall()
-    conn.close()
+    members = Member.query.all()
+    today = datetime.today().date()
+    for m in members:
+        # Calculate subscription status based on end_date (assumed format: yyyy-mm-dd)
+        try:
+            ed = datetime.strptime(m.end_date, "%Y-%m-%d").date()
+            if ed < today:
+                m.status = "Expired"
+            elif (ed - today).days <= 7:
+                m.status = "Near Expiry"
+            else:
+                m.status = "Active"
+        except Exception:
+            m.status = "Invalid Date"
+        
+        # Format join_date to dd mm yyyy
+        try:
+            jd = datetime.strptime(m.join_date, "%Y-%m-%d")
+            m.join_date = jd.strftime("%d %m %Y")
+        except Exception:
+            pass
+        
+        # Format end_date to dd mm yyyy
+        try:
+            edt = datetime.strptime(m.end_date, "%Y-%m-%d")
+            m.end_date = edt.strftime("%d %m %Y")
+        except Exception:
+            pass
 
-    # Convert to list of dictionaries for easy access in Jinja
-    members_list = []
-    for member in members:
-        members_list.append({
-            "id": member[0],
-            "name": member[1],
-            "join_date": member[2],
-            "end_date": format_datetime(member[3]),  # Apply formatting
-            "mobile_num": member[4],
-            "status": get_subscription_status(member[3])  # Add status
-        })
+    return render_template('index.html', members=members)
 
-    return render_template("index.html", members=members_list)
-
-@app.route("/add_member", methods=["POST"])
+@app.route('/add_member', methods=['POST'])
 def add_member():
-    name = request.form["name"]
-    join_date = request.form["join_date"]
-    end_date = request.form["end_date"]
-    mobile_num = request.form["mobile_num"]
-
-    conn = sqlite3.connect("gym.db")
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO test1 (NAME, JOIN_DATE, END_DATE, MOBILE_NUM) VALUES (?, ?, ?, ?)", 
-                   (name, join_date, end_date, mobile_num))
-    conn.commit()
-    conn.close()
+    name = request.form['name']
+    join_date = request.form['join_date']
+    end_date = request.form['end_date']
+    mobile_num = request.form['mobile_num']
+    status = 'Active'
     
-    return redirect(url_for("index"))
+    new_member = Member(name=name, join_date=join_date, end_date=end_date, mobile_num=mobile_num, status=status)
+    db.session.add(new_member)
+    db.session.commit()
+    return redirect(url_for('index'))
 
-@app.route("/delete_member/<int:member_id>", methods=["GET"])
+@app.route('/delete_member/<int:member_id>')
 def delete_member(member_id):
-    conn = sqlite3.connect("gym.db")
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM test1 WHERE ID = ?", (member_id,))
-    conn.commit()
-    conn.close()
-    return redirect(url_for("index"))
+    member = Member.query.get(member_id)
+    if member:
+        db.session.delete(member)
+        db.session.commit()
+    return redirect(url_for('index'))
 
-if __name__ == "__main__":
-    init_db()  # Ensure the database is initialized
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
