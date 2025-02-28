@@ -8,9 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="min-h-screen bg-base-200 p-4">
+<body class="min-h-screen bg-base-200 p-4 overflow-x-hidden">
     <!-- Main Container -->
-    <div class="container mx-auto">
+    <div class="container mx-auto ">
         <!-- Header Section -->
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Gym Membership Manager</h1>
@@ -86,7 +86,7 @@
                     <!-- Context Menu for each member -->
                     <menu type="context" id="memberMenu_{{member.id}}">
                         <menuitem label="Delete Member" 
-                                 onclick="window.location.href='{{ url_for('delete_member', member_id=member.id) }}'">
+                                 onclick="window.location.href='{{ url_for('delete_member', member_id=member.id) }}';">
                         </menuitem>
                     </menu>
                     {% endfor %}
@@ -96,52 +96,52 @@
     </div>
 
     <!-- Add Member Modal -->
-<dialog id="add_member_modal" class="modal">
-    <div class="modal-box">
-        <h3 class="font-bold text-lg mb-4">Add New Member</h3>
-        <form method="POST" action="{{ url_for('add_member') }}" class="space-y-4">
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Name</span>
-                </label>
-                <input type="text" name="name" placeholder="John Doe" class="input input-bordered" required>
-            </div>
-            <!-- Added Email Field -->
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Email</span>
-                </label>
-                <input type="email" name="email" placeholder="john@example.com" class="input input-bordered" required>
-            </div>
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Join Date</span>
-                </label>
-                <input type="date" name="join_date" class="input input-bordered" required>
-            </div>
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">End Date</span>
-                </label>
-                <input type="date" name="end_date" class="input input-bordered" required>
-            </div>
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text">Mobile Number</span>
-                </label>
-                <input type="tel" name="mobile_num" placeholder="+1234567890" class="input input-bordered" required>
-            </div>
-            <div class="modal-action">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-plus mr-2"></i> Add Member
-                </button>
-                <button type="button" class="btn" onclick="add_member_modal.close()">
-                    <i class="fas fa-times mr-2"></i> Cancel
-                </button>
-            </div>
-        </form>
-    </div>
-</dialog>
+    <dialog id="add_member_modal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-4">Add New Member</h3>
+            <form method="POST" action="{{ url_for('add_member') }}" class="space-y-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Name</span>
+                    </label>
+                    <input type="text" name="name" placeholder="John Doe" class="input input-bordered" required>
+                </div>
+                <!-- Added Email Field -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Email</span>
+                    </label>
+                    <input type="email" name="email" placeholder="john@example.com" class="input input-bordered" required>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Join Date</span>
+                    </label>
+                    <input type="date" name="join_date" class="input input-bordered" required>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">End Date</span>
+                    </label>
+                    <input type="date" name="end_date" class="input input-bordered" required>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Mobile Number</span>
+                    </label>
+                    <input type="tel" name="mobile_num" placeholder="+1234567890" class="input input-bordered" required>
+                </div>
+                <div class="modal-action">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus mr-2"></i> Add Member
+                    </button>
+                    <button type="button" class="btn" onclick="add_member_modal.close()">
+                        <i class="fas fa-times mr-2"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </dialog>
 
     <!-- Search functionality -->
     <script>
