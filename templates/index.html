@@ -9,20 +9,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="min-h-screen bg-base-200 p-4 overflow-x-hidden">
-    <!-- Main Container -->
-    <div class="container mx-auto ">
-        <!-- Header Section -->
+    <div class="container mx-auto">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Gym Membership Manager</h1>
-            <!-- Add Member Button -->
             <button class="btn btn-primary" onclick="document.getElementById('add_member_modal').showModal()">
                 <i class="fas fa-plus mr-2"></i> Add Member
             </button>
         </div>
 
-        <!-- Search and Sort Section -->
         <div class="flex flex-col md:flex-row gap-4 mb-6">
-            <!-- Search Bar -->
             <div class="form-control flex-1">
                 <div class="input-group">
                     <input type="text" placeholder="Search members..." class="input input-bordered w-full" id="searchInput" onkeyup="searchMembers()"/>
@@ -32,7 +27,6 @@
                 </div>
             </div>
             
-            <!-- Sorting Options -->
             <div class="dropdown">
                 <div tabindex="0" role="button" class="btn w-full md:w-auto">
                     <i class="fas fa-sort mr-2"></i> Sort By
@@ -46,7 +40,6 @@
             </div>
         </div>
 
-        <!-- Members List -->
         <div class="overflow-x-auto bg-base-100 rounded-lg shadow">
             <table class="table table-zebra" id="membersTable">
                 <thead>
@@ -61,11 +54,12 @@
                 </thead>
                 <tbody>
                     {% for member in members %}
-                    <tr class="hover" contextmenu="memberMenu_{{member.id}}">
-                        <td>{{member.name}}</td>
-                        <td>{{member.join_date}}</td>
-                        <td>{{member.end_date}}</td>
-                        <td>{{member.mobile_num}}</td>
+                    <tr class="hover">
+                        <td>{{ member.name }}</td>
+                        <td>{{ member.join_date }}</td>
+                        <td>{{ member.end_date }}</td>
+                        <!-- Changed to match Supabase 'phone' column -->
+                        <td>{{ member.phone }}</td>
                         <td>
                             {% if member.status == 'Active' %}
                             <span class="badge badge-success">Active</span>
@@ -83,12 +77,6 @@
                             </a>
                         </td>
                     </tr>
-                    <!-- Context Menu for each member -->
-                    <menu type="context" id="memberMenu_{{member.id}}">
-                        <menuitem label="Delete Member" 
-                                 onclick="window.location.href='{{ url_for('delete_member', member_id=member.id) }}'">
-                        </menuitem>
-                    </menu>
                     {% endfor %}
                 </tbody>
             </table>
@@ -106,7 +94,6 @@
                     </label>
                     <input type="text" name="name" placeholder="John Doe" class="input input-bordered" required>
                 </div>
-                <!-- Added Email Field -->
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Email</span>
@@ -125,11 +112,12 @@
                     </label>
                     <input type="date" name="end_date" class="input input-bordered" required>
                 </div>
+                <!-- Changed name to 'phone' to match Supabase -->
                 <div class="form-control">
                     <label class="label">
                         <span class="label-text">Mobile Number</span>
                     </label>
-                    <input type="tel" name="mobile_num" placeholder="+1234567890" class="input input-bordered" required>
+                    <input type="tel" name="phone" placeholder="+1234567890" class="input input-bordered" required>
                 </div>
                 <div class="modal-action">
                     <button type="submit" class="btn btn-primary">
@@ -143,7 +131,6 @@
         </div>
     </dialog>
 
-    <!-- Search functionality -->
     <script>
         function searchMembers() {
             const input = document.getElementById('searchInput');
@@ -151,14 +138,14 @@
             const table = document.getElementById('membersTable');
             const tr = table.getElementsByTagName('tr');
 
-            for (let i = 1; i < tr.length; i++) { // Start from 1 to skip header
+            for (let i = 1; i < tr.length; i++) {
                 const tdName = tr[i].getElementsByTagName('td')[0];
-                const tdMobile = tr[i].getElementsByTagName('td')[3];
-                if (tdName || tdMobile) {
+                const tdPhone = tr[i].getElementsByTagName('td')[3];
+                if (tdName || tdPhone) {
                     const txtName = tdName.textContent || tdName.innerText;
-                    const txtMobile = tdMobile.textContent || tdMobile.innerText;
+                    const txtPhone = tdPhone.textContent || tdPhone.innerText;
                     if (txtName.toUpperCase().indexOf(filter) > -1 || 
-                        txtMobile.toUpperCase().indexOf(filter) > -1) {
+                        txtPhone.toUpperCase().indexOf(filter) > -1) {
                         tr[i].style.display = '';
                     } else {
                         tr[i].style.display = 'none';

@@ -1,76 +1,55 @@
 from flask import Flask, render_template, request, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, timedelta
+from datetime import datetime
+from supabase import create_client, Client
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///gym_members.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
-
-class Member(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    join_date = db.Column(db.String(10), nullable=False)
-    end_date = db.Column(db.String(10), nullable=False)
-    mobile_num = db.Column(db.String(15), nullable=False)
-    status = db.Column(db.String(20), nullable=False)
+supabase_url = "https://rfvbyzumbdmofkcyywoj.supabase.co"
+supabase_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmdmJ5enVtYmRtb2ZrY3l5d29qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA4MzgwNjYsImV4cCI6MjA1NjQxNDA2Nn0.sPUY74XDEDtAA1IbS8H_Wqu_sTq_gR62zsY9wpBREkM"
+supabase: Client = create_client(supabase_url, supabase_key)
 
 @app.route('/')
 def index():
-    members = Member.query.all()
+    response = supabase.table('members').select('*').execute()
+    members = response.data
     today = datetime.today().date()
-    for m in members:
-        # Calculate subscription status based on end_date (assumed format: yyyy-mm-dd)
+    
+    for member in members:
         try:
-            ed = datetime.strptime(m.end_date, "%Y-%m-%d").date()
-            if ed < today:
-                m.status = "Expired"
-            elif (ed - today).days <= 7:
-                m.status = "Near Expiry"
-            else:
-                m.status = "Active"
+            end_date = datetime.strptime(member['end_date'], "%Y-%m-%d").date()
+            member['status'] = (
+                "Expired" if end_date < today else
+                "Near Expiry" if (end_date - today).days <= 7 else
+                "Active"
+            )
         except Exception:
-            m.status = "Invalid Date"
+            member['status'] = "Invalid Date"
         
-        # Format join_date to dd mm yyyy
-        try:
-            jd = datetime.strptime(m.join_date, "%Y-%m-%d")
-            m.join_date = jd.strftime("%d %m %Y")
-        except Exception:
-            pass
-        
-        # Format end_date to dd mm yyyy
-        try:
-            edt = datetime.strptime(m.end_date, "%Y-%m-%d")
-            m.end_date = edt.strftime("%d %m %Y")
-        except Exception:
-            pass
+        for date_field in ['join_date', 'end_date']:
+            try:
+                dt = datetime.strptime(member[date_field], "%Y-%m-%d")
+                member[date_field] = dt.strftime("%d %m %Y")
+            except Exception:
+                pass
 
     return render_template('index.html', members=members)
 
 @app.route('/add_member', methods=['POST'])
 def add_member():
-    name = request.form['name']
-    join_date = request.form['join_date']
-    end_date = request.form['end_date']
-    mobile_num = request.form['mobile_num']
-    status = 'Active'
-    
-    new_member = Member(name=name, join_date=join_date, end_date=end_date, mobile_num=mobile_num, status=status)
-    db.session.add(new_member)
-    db.session.commit()
+    member_data = {
+        'name': request.form['name'],
+        'email': request.form['email'],
+        'join_date': request.form['join_date'],
+        'end_date': request.form['end_date'],
+        'phone': request.form['phone']  # Match Supabase column name
+    }
+    supabase.table('members').insert(member_data).execute()
     return redirect(url_for('index'))
 
 @app.route('/delete_member/<int:member_id>')
 def delete_member(member_id):
-    member = Member.query.get(member_id)
-    if member:
-        db.session.delete(member)
-        db.session.commit()
+    supabase.table('members').delete().eq('id', member_id).execute()
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
