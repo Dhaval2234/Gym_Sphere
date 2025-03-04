@@ -7,126 +7,155 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .input-group {
+            flex-grow: 0;
+            flex-shrink: 1;
+            min-width: 300px;
+        }
+        .dropdown-hover:hover .dropdown-content {
+            display: block;
+        }
+    </style>
 </head>
 <body class="min-h-screen bg-base-200 p-4 overflow-x-hidden">
     <div class="container mx-auto">
+        <!-- Header Section -->
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Gym Membership Manager</h1>
-            <button class="btn btn-primary" onclick="document.getElementById('add_member_modal').showModal()">
-                <i class="fas fa-plus mr-2"></i> Add Member
-            </button>
+            <div class="flex items-center gap-4">
+                <button class="btn btn-ghost btn-circle" id="theme-toggle">
+                    <i class="fas fa-sun text-lg"></i>
+                </button>
+                <button class="btn btn-primary" onclick="document.getElementById('add_member_modal').showModal()">
+                    <i class="fas fa-plus mr-2"></i> Add Member
+                </button>
+            </div>
         </div>
 
-        <div class="flex flex-col md:flex-row gap-4 mb-6">
-            <div class="form-control flex-1">
-                <div class="input-group">
-                    <input type="text" placeholder="Search members..." class="input input-bordered w-full" id="searchInput" onkeyup="searchMembers()"/>
+        <!-- Search and Filter Section -->
+        <div class="flex items-center gap-2 mb-6">
+            <div class="flex-1 flex gap-2">
+                <div class="input-group flex-1 max-w-md">
+                    <input type="text" placeholder="Search members..." class="input input-bordered w-full" 
+                           id="searchInput" onkeyup="searchMembers()">
                     <button class="btn btn-square">
                         <i class="fas fa-search"></i>
                     </button>
                 </div>
             </div>
-            
-            <div class="dropdown">
-                <div tabindex="0" role="button" class="btn w-full md:w-auto">
-                    <i class="fas fa-sort mr-2"></i> Sort By
+            <div class="dropdown dropdown-bottom">
+                <div tabindex="0" role="button" class="btn">
+                    <i class="fas fa-filter mr-2"></i> Filter
                 </div>
                 <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                    <li><a><i class="fas fa-sort-alpha-down mr-2"></i> Name (A-Z)</a></li>
-                    <li><a><i class="fas fa-sort-alpha-up mr-2"></i> Name (Z-A)</a></li>
-                    <li><a><i class="fas fa-calendar-alt mr-2"></i> Expiry Date (Ascending)</a></li>
-                    <li><a><i class="fas fa-calendar-alt mr-2"></i> Expiry Date (Descending)</a></li>
+                    <li><a>Active Members</a></li>
+                    <li><a>Expired Members</a></li>
+                    <li><a>All Members</a></li>
                 </ul>
             </div>
         </div>
 
-        <div class="overflow-x-auto bg-base-100 rounded-lg shadow">
-            <table class="table table-zebra" id="membersTable">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Join Date</th>
-                        <th>End Date</th>
-                        <th>Email ID</th>
-                        <th>Mobile Number</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for member in members %}
-                    <tr class="hover">
-                        <td>{{ member.name }}</td>
-                        <td>{{ member.join_date }}</td>
-                        <td>{{ member.end_date }}</td>
-                        <td>{{ member.email}}</td>
-                        <!-- Changed to match Supabase 'phone' column -->
-                        <td>{{ member.phone }}</td>
-                        <td>
-                            {% if member.status == 'Active' %}
-                            <span class="badge badge-success">Active</span>
-                            {% elif member.status == 'Near Expiry' %}
-                            <span class="badge badge-warning">Near Expiry</span>
-                            {% else %}
-                            <span class="badge badge-error">Expired</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="{{ url_for('delete_member', member_id=member.id) }}" 
-                               class="btn btn-error btn-sm" 
-                               onclick="return confirm('Are you sure you want to delete this member?')">
-                                <i class="fas fa-trash"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <!-- Members Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="membersGrid">
+            {% for member in members %}
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <div class="flex justify-between items-start">
+                        <h2 class="card-title">{{ member.name }}</h2>
+                        <div class="dropdown dropdown-end dropdown-hover">
+                            <div tabindex="0" role="button" class="btn btn-sm btn-ghost">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </div>
+                            <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                <li>
+                                    <a href="{{ url_for('edit_member', member_id=member.id) }}">
+                                        <i class="fas fa-edit text-info"></i> Edit
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ url_for('delete_member', member_id=member.id) }}" 
+                                       onclick="return confirm('Are you sure?')">
+                                        <i class="fas fa-trash text-error"></i> Delete
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <p><i class="fas fa-envelope mr-2"></i>{{ member.email }}</p>
+                        <p><i class="fas fa-phone mr-2"></i>{{ member.phone }}</p>
+                        <p><i class="fas fa-calendar-day mr-2"></i>Joined: {{ member.join_date }}</p>
+                        <p><i class="fas fa-calendar-times mr-2"></i>Expires: {{ member.end_date }}</p>
+                    </div>
+                    <div class="card-actions justify-end mt-4">
+                        {% if member.status == 'Active' %}
+                        <span class="badge badge-success badge-lg">Active</span>
+                        {% elif member.status == 'Near Expiry' %}
+                        <span class="badge badge-warning badge-lg">Near Expiry</span>
+                        {% else %}
+                        <span class="badge badge-error badge-lg">Expired</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
     </div>
 
     <!-- Add Member Modal -->
     <dialog id="add_member_modal" class="modal">
         <div class="modal-box">
-            <h3 class="font-bold text-lg mb-4">Add New Member</h3>
-            <form method="POST" action="{{ url_for('add_member') }}" class="space-y-4">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Name</span>
-                    </label>
-                    <input type="text" name="name" placeholder="John Doe" class="input input-bordered" required>
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Email</span>
-                    </label>
-                    <input type="email" name="email" placeholder="john@example.com" class="input input-bordered" required>
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Join Date</span>
-                    </label>
-                    <input type="date" name="join_date" class="input input-bordered" required>
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">End Date</span>
-                    </label>
-                    <input type="date" name="end_date" class="input input-bordered" required>
-                </div>
-                <!-- Changed name to 'phone' to match Supabase -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Mobile Number</span>
-                    </label>
-                    <input type="tel" pattern="[0-9]{10}" minlength="10" maxlength="10" name="phone" placeholder="+1234567890" class="input input-bordered" required>
+            <h3 class="font-bold text-lg">Add New Member</h3>
+            <form method="POST" action="{{ url_for('add_member') }}" class="mt-4 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Name</span>
+                        </label>
+                        <input type="text" name="name" class="input input-bordered" required>
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Email</span>
+                        </label>
+                        <input type="email" name="email" class="input input-bordered" required>
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Phone</span>
+                        </label>
+                        <input type="tel" name="phone" class="input input-bordered" required>
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Membership Type</span>
+                        </label>
+                        <select class="select select-bordered" name="membership_type">
+                            <option value="Basic">Basic</option>
+                            <option value="Premium">Premium</option>
+                            <option value="VIP">VIP</option>
+                        </select>
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Join Date</span>
+                        </label>
+                        <input type="date" name="join_date" class="input input-bordered" required>
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Expiry Date</span>
+                        </label>
+                        <input type="date" name="end_date" class="input input-bordered" required>
+                    </div>
                 </div>
                 <div class="modal-action">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-plus mr-2"></i> Add Member
+                    <button type="button" class="btn" onclick="document.getElementById('add_member_modal').close()">
+                        Cancel
                     </button>
-                    <button type="button" class="btn" onclick="add_member_modal.close()">
-                        <i class="fas fa-times mr-2"></i> Cancel
+                    <button type="submit" class="btn btn-primary">
+                        Add Member
                     </button>
                 </div>
             </form>
@@ -134,24 +163,36 @@
     </dialog>
 
     <script>
+        // Theme Toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+
+        themeToggle.addEventListener('click', () => {
+            if (htmlElement.getAttribute('data-theme') === 'dark') {
+                htmlElement.setAttribute('data-theme', 'light');
+                themeToggle.innerHTML = '<i class="fas fa-sun text-lg"></i>';
+            } else {
+                htmlElement.setAttribute('data-theme', 'dark');
+                themeToggle.innerHTML = '<i class="fas fa-moon text-lg"></i>';
+            }
+        });
+
+        // Search Functionality
         function searchMembers() {
             const input = document.getElementById('searchInput');
             const filter = input.value.toUpperCase();
-            const table = document.getElementById('membersTable');
-            const tr = table.getElementsByTagName('tr');
+            const grid = document.getElementById('membersGrid');
+            const cards = grid.getElementsByClassName('card');
 
-            for (let i = 1; i < tr.length; i++) {
-                const tdName = tr[i].getElementsByTagName('td')[0];
-                const tdPhone = tr[i].getElementsByTagName('td')[3];
-                if (tdName || tdPhone) {
-                    const txtName = tdName.textContent || tdName.innerText;
-                    const txtPhone = tdPhone.textContent || tdPhone.innerText;
-                    if (txtName.toUpperCase().indexOf(filter) > -1 || 
-                        txtPhone.toUpperCase().indexOf(filter) > -1) {
-                        tr[i].style.display = '';
-                    } else {
-                        tr[i].style.display = 'none';
-                    }
+            for (let i = 0; i < cards.length; i++) {
+                const name = cards[i].querySelector('.card-title').textContent.toUpperCase();
+                const email = cards[i].querySelectorAll('p')[0].textContent.toUpperCase();
+                const phone = cards[i].querySelectorAll('p')[1].textContent.toUpperCase();
+                
+                if (name.includes(filter) || email.includes(filter) || phone.includes(filter)) {
+                    cards[i].style.display = '';
+                } else {
+                    cards[i].style.display = 'none';
                 }
             }
         }
