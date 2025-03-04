@@ -47,6 +47,7 @@
                         <th>Name</th>
                         <th>Join Date</th>
                         <th>End Date</th>
+                        <th>Email ID</th>
                         <th>Mobile Number</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -58,6 +59,7 @@
                         <td>{{ member.name }}</td>
                         <td>{{ member.join_date }}</td>
                         <td>{{ member.end_date }}</td>
+                        <td>{{ member.email}}</td>
                         <!-- Changed to match Supabase 'phone' column -->
                         <td>{{ member.phone }}</td>
                         <td>
@@ -117,7 +119,7 @@
                     <label class="label">
                         <span class="label-text">Mobile Number</span>
                     </label>
-                    <input type="tel" name="phone" placeholder="+1234567890" class="input input-bordered" required>
+                    <input type="tel" pattern="[0-9]{10}" minlength="10" maxlength="10" name="phone" placeholder="+1234567890" class="input input-bordered" required>
                 </div>
                 <div class="modal-action">
                     <button type="submit" class="btn btn-primary">
