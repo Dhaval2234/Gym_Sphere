@@ -12,67 +12,61 @@
     <div class="container mx-auto">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Edit Member</h1>
-            <a href="{{ url_for('index') }}" class="btn btn-ghost">
-                <i class="fas fa-arrow-left mr-2"></i> Back to List
-            </a>
+            <a href="{{ url_for('index') }}" class="btn btn-ghost">Back to List</a>
         </div>
 
-        <div class="bg-base-100 p-6 rounded-lg shadow-xl max-w-2xl mx-auto">
-            <form method="POST">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Name</span>
-                        </label>
-                        <input type="text" name="name" class="input input-bordered" 
-                               value="{{ member.name }}" required>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} mb-4">
+                        <span>{{ message }}</span>
                     </div>
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Email</span>
-                        </label>
-                        <input type="email" name="email" class="input input-bordered"
-                               value="{{ member.email }}" required>
-                    </div>
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Phone</span>
-                        </label>
-                        <input type="tel" name="phone" class="input input-bordered"
-                               value="{{ member.phone }}" required>
-                    </div>
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Membership Type</span>
-                        </label>
-                        <select class="select select-bordered" name="membership_type">
-                            <option value="Basic" {% if member.membership_type == 'Basic' %}selected{% endif %}>Basic</option>
-                            <option value="Premium" {% if member.membership_type == 'Premium' %}selected{% endif %}>Premium</option>
-                            <option value="VIP" {% if member.membership_type == 'VIP' %}selected{% endif %}>VIP</option>
-                        </select>
-                    </div>
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Join Date</span>
-                        </label>
-                        <input type="date" name="join_date" class="input input-bordered"
-                               value="{{ member.join_date }}" required>
-                    </div>
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Expiry Date</span>
-                        </label>
-                        <input type="date" name="end_date" class="input input-bordered"
-                               value="{{ member.end_date }}" required>
-                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" class="card bg-base-100 shadow-xl p-6">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Name</span>
+                    </label>
+                    <input type="text" name="name" class="input input-bordered" 
+                           value="{{ member.name }}" required>
                 </div>
-                <div class="modal-action mt-6">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save mr-2"></i> Save Changes
-                    </button>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Email</span>
+                    </label>
+                    <input type="email" name="email" class="input input-bordered"
+                           value="{{ member.email }}" required>
                 </div>
-            </form>
-        </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Phone</span>
+                    </label>
+                    <input type="tel" name="phone" class="input input-bordered"
+                           value="{{ member.phone }}" required>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Join Date</span>
+                    </label>
+                    <input type="date" name="join_date" class="input input-bordered"
+                           value="{{ member.join_date }}" required>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Expiry Date</span>
+                    </label>
+                    <input type="date" name="end_date" class="input input-bordered"
+                           value="{{ member.end_date }}" required>
+                </div>
+            </div>
+            <div class="modal-action mt-6">
+                <button type="submit" class="btn btn-primary">Update Member</button>
+            </div>
+        </form>
     </div>
 </body>
 </html>
